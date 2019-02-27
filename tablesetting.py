@@ -4,47 +4,30 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from sacred import Experiment
-from keras.layers import Input, Dense
+from keras.layers import Input
 from keras.models import Model
-from keras.optimizers import Adam
 
 from ingredients.dataset import dataset_ingredient, load_dataset
+from ingredients.models import generator_ingredient, create_generator, \
+                               discriminator_ingredient, create_discriminator
 
 
-experiment = Experiment(name='GAN', ingredients=[dataset_ingredient, ])
+experiment = Experiment(name='GAN', ingredients=[dataset_ingredient,
+                                                 generator_ingredient,
+                                                 discriminator_ingredient])
 
 
 class GAN:
-    def __init__(self):
+    def __init__(self, latent_size):
         """Initializes and compiles the GAN model."""
-        self.latent_size = 100
+        self.latent_size = latent_size
+        self.generator = create_generator()
+        self.discriminator = create_discriminator()
         self.compile()
 
-    @property
-    def generator(self):
-        if not hasattr(self, '_generator'):
-            inputs = Input(shape=(self.latent_size, ))
-            hidden = Dense(128, activation='relu')(inputs)
-            hidden = Dense(128, activation='relu')(hidden)
-            outputs = Dense(6, activation='tanh')(hidden)
-            self._generator = Model(inputs=inputs, outputs=outputs, name='Generator')
-        return self._generator
-
-    @property
-    def discriminator(self):
-        if not hasattr(self, '_discriminator'):
-            inputs = Input(shape=(6, ))
-            hidden = Dense(128, activation='relu')(inputs)
-            hidden = Dense(128, activation='relu')(hidden)
-            outputs = Dense(1, activation='sigmoid')(hidden)
-            self._discriminator = Model(inputs=inputs, outputs=outputs, name='Discriminator')
-        return self._discriminator
-
     def compile(self):
-        optimizer = Adam(0.00002, 0.5)
-
         # First, compile discriminator and set it to non-trainable
-        self.discriminator.compile(optimizer=optimizer,
+        self.discriminator.compile(optimizer=self.discriminator.optimizer,
                                    loss='binary_crossentropy')
         self.discriminator.trainable = False
 
@@ -53,7 +36,7 @@ class GAN:
         outputs = self.discriminator(self.generator(z))
 
         self.gan = Model(inputs=z, outputs=outputs, name=self.__class__.__name__)
-        self.gan.compile(optimizer=optimizer,
+        self.gan.compile(optimizer=self.generator.optimizer,
                          loss='binary_crossentropy')
 
     def step(self, data, batch_size):
@@ -75,18 +58,21 @@ class GAN:
 
 
 @experiment.config
-def config():
+def config(generator):
     # The batch size
     batch_size = 25
     # The number of training steps (not real epochs at the moment)
     epochs = 50000
     # Artifact directory
     artifacts_path = 'artifacts'
+    # The size of the latent input vector
+    latent_size = generator['latent_size']
 
     # For flake8, ignore W0612 "assigned but never used" by using variables
     batch_size
     epochs
     artifacts_path
+    latent_size
 
 
 @experiment.capture
@@ -134,13 +120,13 @@ def plot_samples(filename, samples, title=None):
 
 @experiment.automain
 @experiment.command
-def train(_run, _log, dataset, batch_size, epochs):
+def train(_run, _log, latent_size, dataset, batch_size, epochs):
     data = load_dataset(dataset['filename'])
     experiment.add_resource(dataset['filename'])
 
     plot_samples('dataset.png', data, 'Original')
 
-    gan = GAN()
+    gan = GAN(latent_size)
     _log.info('GAN:')
     gan.gan.summary(print_fn=_log.info)
     _log.info('Generator:')
