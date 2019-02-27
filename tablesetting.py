@@ -1,0 +1,165 @@
+from pathlib import Path
+
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from sacred import Experiment
+from keras.layers import Input, Dense
+from keras.models import Model
+from keras.optimizers import Adam
+
+from ingredients.dataset import dataset_ingredient, load_dataset
+
+
+experiment = Experiment(name='GAN', ingredients=[dataset_ingredient, ])
+
+
+class GAN:
+    def __init__(self):
+        """Initializes and compiles the GAN model."""
+        self.latent_size = 100
+        self.compile()
+
+    @property
+    def generator(self):
+        if not hasattr(self, '_generator'):
+            inputs = Input(shape=(self.latent_size, ))
+            hidden = Dense(128, activation='relu')(inputs)
+            hidden = Dense(128, activation='relu')(hidden)
+            outputs = Dense(6, activation='tanh')(hidden)
+            self._generator = Model(inputs=inputs, outputs=outputs, name='Generator')
+        return self._generator
+
+    @property
+    def discriminator(self):
+        if not hasattr(self, '_discriminator'):
+            inputs = Input(shape=(6, ))
+            hidden = Dense(128, activation='relu')(inputs)
+            hidden = Dense(128, activation='relu')(hidden)
+            outputs = Dense(1, activation='sigmoid')(hidden)
+            self._discriminator = Model(inputs=inputs, outputs=outputs, name='Discriminator')
+        return self._discriminator
+
+    def compile(self):
+        optimizer = Adam(0.00002, 0.5)
+
+        # First, compile discriminator and set it to non-trainable
+        self.discriminator.compile(optimizer=optimizer,
+                                   loss='binary_crossentropy')
+        self.discriminator.trainable = False
+
+        # Then, create gan with non-trainable discriminator and compile it
+        z = Input(shape=(self.latent_size, ))
+        outputs = self.discriminator(self.generator(z))
+
+        self.gan = Model(inputs=z, outputs=outputs, name=self.__class__.__name__)
+        self.gan.compile(optimizer=optimizer,
+                         loss='binary_crossentropy')
+
+    def step(self, data, batch_size):
+        """Performs one training step, i.e. one training batch.
+
+        Should be replaced with epoch learning."""
+        batch = data[np.random.randint(0, len(data), batch_size)]
+        z = np.random.randn(batch_size, self.latent_size)
+
+        generated = self.generator.predict(z)
+        ld = self.discriminator.train_on_batch(np.vstack((generated, batch)),
+                                               np.hstack((np.zeros((batch_size,)), np.ones((batch_size,)))))
+
+        noise = np.random.randn(batch_size, self.latent_size)
+        generated = self.generator.predict(z)
+        lg = self.gan.train_on_batch(noise, 1 - self.discriminator.predict(generated))
+
+        return ld, lg
+
+
+@experiment.config
+def config():
+    # The batch size
+    batch_size = 25
+    # The number of training steps (not real epochs at the moment)
+    epochs = 50000
+    # Artifact directory
+    artifacts_path = 'artifacts'
+
+    # For flake8, ignore W0612 "assigned but never used" by using variables
+    batch_size
+    epochs
+    artifacts_path
+
+
+@experiment.capture
+def artifact_path(filename, artifacts_path):
+    """Appends the file name to the artifacts_path."""
+    return Path(artifacts_path) / filename
+
+
+def save_model(filename, model):
+    """Saves the model."""
+    path = artifact_path(filename)
+
+    path.write_text(model.to_json())
+    experiment.add_artifact(path, name=model.name)
+
+
+def save_weights(filename, model):
+    """Saves model weights."""
+    path = artifact_path(filename)
+
+    model.save_weights(path)
+    experiment.add_artifact(path)
+
+
+def plot_samples(filename, samples, title=None):
+    samples = samples.reshape(-1, 2)
+    C = ['red', 'blue', 'green', 'orange']
+    colors = C[:3] * (samples.shape[0] // 3)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    if title:
+        ax.set_title(title)
+    ax.scatter(*zip(*samples), c=colors, alpha=0.3)
+    ax.scatter(0, 0, c=C[-1])
+    ax.legend([mpatches.Rectangle((0, 0), 1, 1, fc=c) for c in C],
+              ['cup', 'fork', 'knife', 'plate'])
+
+    # save
+    path = artifact_path(filename)
+    fig.savefig(path)
+    experiment.add_artifact(path)
+    return fig
+
+
+@experiment.automain
+@experiment.command
+def train(_run, _log, dataset, batch_size, epochs):
+    data = load_dataset(dataset['filename'])
+    experiment.add_resource(dataset['filename'])
+
+    plot_samples('dataset.png', data, 'Original')
+
+    gan = GAN()
+    _log.info('GAN:')
+    gan.gan.summary(print_fn=_log.info)
+    _log.info('Generator:')
+    gan.generator.summary(print_fn=_log.info)
+    _log.info('Discriminator:')
+    gan.discriminator.summary(print_fn=_log.info)
+    save_model('gan.json', gan.gan)
+
+    test_z = np.random.randn(100, gan.latent_size)
+    for epoch in range(1, epochs + 1):
+        ld, lg = gan.step(data, batch_size)  # TODO: replace with real epoch
+
+        _run.log_scalar('loss.generator', lg, epoch)
+        _run.log_scalar('loss.discriminator', ld, epoch)
+        if not epoch % 1000:
+            _log.info(f'Epoch {epoch} - Losses: G {lg:.4f}, D {ld:.4f}')
+        if not epoch % 10000:
+            plot_samples(f'generated_{epoch}.png', gan.generator.predict(test_z), f'Generated {epoch}')
+
+    save_weights('gan.h5', gan.gan)
+    plot_samples(f'generated.png', gan.generator.predict(test_z), f'Generated {epoch}')
+    return lg, ld

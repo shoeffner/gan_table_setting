@@ -1,0 +1,23 @@
+version: '3.1'
+
+services:
+    omniboard:
+        image: vivekratnavel/omniboard
+        command: ['--mu', 'mongodb://mongo:27017/sacred']
+        ports:
+            - 9000:9000
+        depends_on:
+            - mongo
+
+    mongo:
+        image: mongo
+        restart: always
+        volumes:
+            - data:/data/db
+        ports:
+            - 27017:27017
+        environment:
+            MONGO_INITDB_DATABASE: sacred
+
+volumes:
+    data:
