@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6b4f5716c93a95ec30f921d07416f76a24415bd717eaa43f8db5b43c274291d7"
+            "sha256": "f14932c0ced0a8fbaeac6443a5a0fccb3385e344d585fd6ea2c7bc895b5e859b"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -34,11 +34,24 @@
             ],
             "version": "==0.10.0"
         },
+        "decorator": {
+            "hashes": [
+                "sha256:33cd704aea07b4c28b3eb2c97d288a06918275dac0ecebdaf1bc8a48d98adb9e",
+                "sha256:cabb249f4710888a2fc0e13e9a16c343d932033718ff62e1e9bc93a9d3a9122b"
+            ],
+            "version": "==4.3.2"
+        },
         "docopt": {
             "hashes": [
                 "sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491"
             ],
             "version": "==0.6.2"
+        },
+        "future": {
+            "hashes": [
+                "sha256:67045236dcfd6816dc439556d009594abf643e5eb48992e36beac09c2ca659b8"
+            ],
+            "version": "==0.17.1"
         },
         "gast": {
             "hashes": [
@@ -131,6 +144,15 @@
             ],
             "index": "pypi",
             "version": "==2.9.0"
+        },
+        "hyperopt": {
+            "hashes": [
+                "sha256:2832a9f321ae1167dbd39a7382721933c6885b682ea90165dd90cd64938aa226",
+                "sha256:d95ac8a8dd14a56a1d52c0b0e8501c16463e99d3a9571e297058a6909131878c",
+                "sha256:df8c48a62bc1614bdc37f5cc570064a93a4b81a16559621db9acee3f6536b658"
+            ],
+            "index": "pypi",
+            "version": "==0.1.2"
         },
         "jsonpickle": {
             "hashes": [
@@ -231,6 +253,12 @@
                 "sha256:6ae3d26b837feacf732fb8aa5b842130da1daf221f5af9f9d4b2a0a6414b0d51"
             ],
             "version": "==2.3.2"
+        },
+        "networkx": {
+            "hashes": [
+                "sha256:45e56f7ab6fe81652fb4bc9f44faddb0e9025f469f602df14e3b2551c2ea5c8b"
+            ],
+            "version": "==2.2"
         },
         "numpy": {
             "hashes": [
@@ -492,6 +520,13 @@
                 "sha256:1d6d69ce66211143803fbc56652b41d73b4a400a2891d7bf7a1cdf4c02de613b"
             ],
             "version": "==1.1.0"
+        },
+        "tqdm": {
+            "hashes": [
+                "sha256:d385c95361699e5cf7622485d9b9eae2d4864b21cd5a2374a9c381ffed701021",
+                "sha256:e22977e3ebe961f72362f6ddfb9197cc531c9737aaf5f607ef09740c849ecd05"
+            ],
+            "version": "==4.31.1"
         },
         "werkzeug": {
             "hashes": [

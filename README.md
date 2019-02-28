@@ -23,6 +23,17 @@ python tablesetting.py -m sacred
 ```
 
 
+### Hyperparameter search
+
+Run the Mongo DB as shown above.
+Then use `runner.sh` to run a hyperopt-mongo-worker which can optimize the parameters.
+To queue different parameter settings, run:
+
+```bash
+python optimize_hyperparameters.py
+```
+
+
 ## Acknowledgments
 
 The research reported in this repository has been supported by the German Research Foundation DFG, as part of Collaborative Research Center (Sonderforschungsbereich) 1320 "EASE – Everyday Activity Science and Engineering", University of Bremen (https://www.ease-crc.org/). The research was conducted in subproject P01 "Embodied semantics for the language of action and change: Combining analysis, reasoning and simulation".
