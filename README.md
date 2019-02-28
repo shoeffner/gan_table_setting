@@ -33,6 +33,17 @@ To queue different parameter settings, run:
 python optimize_hyperparameters.py
 ```
 
+To visualize the results, the `result_server.py` can be used ([http://localhost:5000](http://localhost:5000)).
+On startup and every minute, it processes new results coming in from runners.
+However, it only forces updates of the most recent result set.
+For older result sets (or concurrently running result sets), manual calls are needed:
+
+```bash
+python visualize_optimizations.py KEY
+```
+
+Where `KEY` is one of the keys stored in `results/runs.list`.
+
 
 ## Acknowledgments
 

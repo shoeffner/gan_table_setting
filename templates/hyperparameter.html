@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ key }} Hyperparameters</title>
+    </head>
+    <body>
+        <a href="/">Back to index</a>
+        <h1>Experiment {{ key }}</h1>
+        <a href="/results/{{ key }}/raw.csv">raw.csv</a>
+
+        <table>
+            <tr>
+                <th>Index (change to ID)</th>
+                {% for k in trials[0].keys() %}
+                <th>{{ k }}</th>
+                {% endfor %}
+            </tr>
+            {% for trial in trials %}
+            <tr>
+                <th>{{ loop.index }}</th>
+                {% for v in trial.values() %}
+                <td>{{ v }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>
