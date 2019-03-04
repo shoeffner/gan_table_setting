@@ -22,8 +22,8 @@ def create_space():
     min_batch_size = 8
     max_batch_size = 64
 
-    min_epochs = 1  # 1e3
-    max_epochs = 2  # 1e6
+    min_epochs = 1e3
+    max_epochs = 1e6
 
     numbers_of_layers = range(min_layers, max_layers)
     return {
