@@ -1,4 +1,4 @@
-artifacts
+artifacts/**/*
 !artifacts/.keep
 results
 # created by hyperopt
