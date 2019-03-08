@@ -115,7 +115,7 @@ def plot_samples(filename, samples, title=None):
     path = artifact_path(filename)
     fig.savefig(path)
     experiment.add_artifact(path)
-    return fig
+    plt.close(fig)
 
 
 @experiment.automain
@@ -148,4 +148,4 @@ def train(_run, _log, latent_size, dataset, batch_size, epochs):
 
     save_weights('gan.h5', gan.gan)
     plot_samples(f'generated.png', gan.generator.predict(test_z), f'Generated {epoch}')
-    return lg, ld
+    return f'{lg:.5f}, {ld:.5f}'
