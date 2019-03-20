@@ -12,8 +12,8 @@ from objective_function import objective_function
 
 
 def create_space():
-    min_layers = 1
-    max_layers = 11
+    min_layers = 2
+    max_layers = 5
 
     neurons = [2 ** x for x in range(1, 10)]
 
@@ -23,13 +23,14 @@ def create_space():
     max_batch_size = 32
     batch_resolution = 1
 
-    min_epochs = 1500
+    min_epochs = 5000
     max_epochs = 20000
-    epoch_resolution = 100
+    epoch_resolution = 1000
 
-    numbers_of_layers = range(min_layers, max_layers)
+    numbers_of_layers = range(min_layers, max_layers + 1)
 
     optimizers = ['adam', 'sgd', 'nadam']
+
     return {
         'batch_size': hyperopt.hp.qloguniform('batch_size', math.log(min_batch_size), math.log(max_batch_size), batch_resolution),
         'epochs': hyperopt.hp.qloguniform('epochs', math.log(min_epochs), math.log(max_epochs), epoch_resolution),
