@@ -3,6 +3,7 @@ import os
 import random
 import string
 from argparse import ArgumentParser
+from functools import partial
 
 import hyperopt
 from hyperopt.mongoexp import MongoTrials
@@ -16,14 +17,14 @@ def create_space():
     max_layers = 11
 
     # neurons per layer
-    min_neurons = 8
+    min_neurons = 2
     max_neurons = 1024
 
-    min_batch_size = 8
-    max_batch_size = 64
+    min_batch_size = 1
+    max_batch_size = 32
 
-    min_epochs = 1e3
-    max_epochs = 1e6
+    min_epochs = 1500
+    max_epochs = 20000
 
     numbers_of_layers = range(min_layers, max_layers)
     return {
@@ -56,8 +57,12 @@ def create_space():
 
 def minimize(key, evals=100):
     print(f'Starting minimization queueing for {key} .')
-    trials = MongoTrials('mongo://localhost:27017/sacred/jobs', exp_key=f'GAN_opt_{key}')
-    hyperopt.fmin(objective_function,
+
+    MONGO_URL = f'mongodb://{os.environ.get("MONGO_USER")}:{os.environ.get("MONGO_PASS")}@{os.environ.get("MONGO_HOST")}/{os.environ.get("MONGO_DB", "sacred")}/jobs?authSource=admin'
+    exp_key = f'GAN_opt_{key}'
+    trials = MongoTrials(MONGO_URL, exp_key=exp_key)
+
+    hyperopt.fmin(partial(objective_function, exp_key=exp_key),
                   space=create_space(),
                   algo=hyperopt.tpe.suggest,
                   max_evals=evals,

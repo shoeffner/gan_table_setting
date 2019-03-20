@@ -1,9 +1,6 @@
-from sacred.observers import MongoObserver
 from hyperopt import STATUS_OK
 
 from tablesetting import experiment
-
-experiment.observers.append(MongoObserver.create(db_name='sacred'))
 
 
 def convert(config):
@@ -14,11 +11,14 @@ def convert(config):
     return config
 
 
-def objective_function(config):
+def objective_function(config, **kwargs):
+    experiment.name = kwargs.get('exp_key', experiment.name)
+
     config = convert(config)
     run = experiment.run(config_updates=config)
 
-    loss = run.result[0] + abs(0.5 - run.result[1])
+    w = 0.3
+    loss = w * run.result[0] + (1 - w) * ((0.5 - run.result[1]) ** 2) ** .5
 
     return {
         'loss': loss,
