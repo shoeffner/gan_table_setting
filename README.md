@@ -37,8 +37,9 @@ python tablesetting.py
 
 ### Hyperparameter search
 
-Run the Mongo DB as shown above.
+Run the MongoDB as shown above.
 Then use `runner.sh` to run a hyperopt-mongo-worker which can optimize the parameters.
+Note that this currently relies on a manual workaround if your database uses admin credentials, see [hyperopt/hyperopt#486](https://github.com/hyperopt/hyperopt/issues/468) for details.
 To queue different parameter settings, run:
 
 ```bash

@@ -12,13 +12,15 @@ def convert(config):
 
 
 def objective_function(config, **kwargs):
-    experiment.name = kwargs.get('exp_key', experiment.name)
+    experiment.path = kwargs.get('exp_key', experiment.path)
 
     config = convert(config)
     run = experiment.run(config_updates=config)
 
+    lg, ld = [float(x) for x in run.result.split(', ')]
+
     w = 0.3
-    loss = w * run.result[0] + (1 - w) * ((0.5 - run.result[1]) ** 2) ** .5
+    loss = w * lg + (1 - w) * ((0.5 - ld) ** 2) ** .5
 
     return {
         'loss': loss,
