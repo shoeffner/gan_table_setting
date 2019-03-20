@@ -3,7 +3,7 @@ version: '3.1'
 services:
     omniboard:
         image: vivekratnavel/omniboard
-        command: ['--mu', 'mongodb://mongo:27017/sacred']
+        command: ['--mu', 'mongodb://${MONGO_USER}:${MONGO_PASS}@mongo:27017/${MONGO_DB}?authSource=admin']
         ports:
             - 9000:9000
         depends_on:
@@ -15,9 +15,11 @@ services:
         volumes:
             - data:/data/db
         ports:
-            - 27017:27017
+            - 127.0.0.1:27017:27017
         environment:
-            MONGO_INITDB_DATABASE: sacred
+            MONGO_INITDB_DATABASE: ${MONGO_DB}
+            MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
 
 volumes:
     data:

@@ -1,9 +1,11 @@
 from pathlib import Path
+import os
 
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from sacred import Experiment
+from sacred.observers import MongoObserver
 from keras.layers import Input
 from keras.models import Model
 
@@ -15,6 +17,9 @@ from ingredients.models import generator_ingredient, create_generator, \
 experiment = Experiment(name='GAN', ingredients=[dataset_ingredient,
                                                  generator_ingredient,
                                                  discriminator_ingredient])
+
+MONGO_URL = f'mongodb://{os.environ.get("MONGO_USER")}:{os.environ.get("MONGO_PASS")}@{os.environ.get("MONGO_HOST")}/{os.environ.get("MONGO_DB", "sacred")}?authSource=admin'
+experiment.observers.append(MongoObserver.create(url=MONGO_URL, db_name=os.environ.get('MONGO_DB', 'sacred')))
 
 
 class GAN:
