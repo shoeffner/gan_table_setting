@@ -39,11 +39,27 @@ class GAN:
         self.gan.compile(optimizer=self.generator.optimizer,
                          loss='binary_crossentropy')
 
-    def step(self, data, batch_size):
-        """Performs one training step, i.e. one training batch.
+    def epoch(self, data, batch_size=10):
+        batch_size = min(len(data), batch_size)
 
-        Should be replaced with epoch learning."""
-        batch = data[np.random.randint(0, len(data), batch_size)]
+        # add noise
+        data += np.random.normal(scale=0.005, size=data.shape)
+
+        # shuffle data and prepare batches
+        indices = np.arange(len(data))
+        np.random.shuffle(indices)
+        batches = np.split(data[indices], np.arange(batch_size, len(data), batch_size))
+        if len(batches[-1]) != batch_size:
+            del batches[-1]
+
+        # train batch by batch
+        for batch in batches:
+            ld, lg = self.train_on_batch(batch)
+        return ld, lg
+
+    def train_on_batch(self, batch):
+        """Performs one training step, i.e. one training batch."""
+        batch_size = len(batch)
         z = np.random.randn(batch_size, self.latent_size)
 
         generated = self.generator.predict(z)
@@ -137,13 +153,13 @@ def train(_run, _log, latent_size, dataset, batch_size, epochs):
 
     test_z = np.random.randn(100, gan.latent_size)
     for epoch in range(1, epochs + 1):
-        ld, lg = gan.step(data, batch_size)  # TODO: replace with real epoch
+        ld, lg = gan.epoch(data, batch_size)
 
         _run.log_scalar('loss.generator', lg, epoch)
         _run.log_scalar('loss.discriminator', ld, epoch)
         if not epoch % 1000:
             _log.info(f'Epoch {epoch} - Losses: G {lg:.4f}, D {ld:.4f}')
-        if not epoch % 10000:
+        if not epoch % 1000:
             plot_samples(f'generated_{epoch}.png', gan.generator.predict(test_z), f'Generated {epoch}')
 
     save_weights('gan.h5', gan.gan)
