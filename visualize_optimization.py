@@ -53,7 +53,7 @@ def create_html(df, key, path):
 
     (path / 'index.html').write_text(tpl.render(
         key=key,
-        trials=list(df.transpose().to_dict().values())
+        trials=sorted(list(df.transpose().to_dict().values()), key=lambda x: x['config'], reverse=True)
     ))
 
 
