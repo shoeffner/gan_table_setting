@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -82,7 +83,7 @@ class GAN:
 def config(generator):
     # The batch size
     batch_size = 25
-    # The number of training steps (not real epochs at the moment)
+    # The number of training epochs
     epochs = 50000
     # Artifact directory
     artifacts_path = 'artifacts'
@@ -142,6 +143,14 @@ def plot_samples(filename, samples, title=None):
 @experiment.automain
 @experiment.command
 def train(_run, _log, latent_size, dataset, batch_size, epochs):
+    if 'with' in sys.argv:
+        experiment.add_artifact(sys.argv[sys.argv.index('with') + 1])
+
+    try:
+        run_id = _run._id
+    except AttributeError:
+        run_id = ''
+
     data = load_dataset(dataset['filename'])
     experiment.add_resource(dataset['filename'])
 
@@ -154,7 +163,7 @@ def train(_run, _log, latent_size, dataset, batch_size, epochs):
     gan.generator.summary(print_fn=_log.info)
     _log.info('Discriminator:')
     gan.discriminator.summary(print_fn=_log.info)
-    save_model('gan.json', gan.gan)
+    save_model(f'gan_{run_id}.json', gan.gan)
 
     test_z = np.random.randn(100, gan.latent_size)
     for epoch in range(1, epochs + 1):
@@ -165,8 +174,8 @@ def train(_run, _log, latent_size, dataset, batch_size, epochs):
         if not epoch % 1000:
             _log.info(f'Epoch {epoch} - Losses: G {lg:.4f}, D {ld:.4f}')
         if not epoch % 1000:
-            plot_samples(f'generated_{epoch}.png', gan.generator.predict(test_z), f'Generated {epoch}')
+            plot_samples(f'generated_{run_id}_{epoch}.png', gan.generator.predict(test_z), f'Generated {epoch}')
 
-    save_weights('gan.h5', gan.gan)
-    plot_samples(f'generated.png', gan.generator.predict(test_z), f'Generated {epoch}')
+    save_weights(f'gan_{run_id}.h5', gan.gan)
+    plot_samples(f'generated_{run_id}.png', gan.generator.predict(test_z), f'Generated {epoch}')
     return f'{lg:.5f}, {ld:.5f}'
