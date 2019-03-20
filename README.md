@@ -7,7 +7,7 @@ This project uses [sacred](https://github.com/IDSIA/sacred), so running can be d
 
 ```bash
 python tablesetting.py print_config  # To see what can be configured
-python tablesetting.py  # Just train
+python tablesetting.py  # Just train  -- currently, the environment variables for MONGO (see next section) are required!
 ```
 
 
@@ -15,11 +15,23 @@ python tablesetting.py  # Just train
 
 If you have docker and docker-compose, you can spin up MongoDB and Omniboard instances using the `docker-compose.yml` file.
 You can then train and store the results to the MongoDB, and inspect the results at your [local omniboard (http://localhost:9000)](http://localhost:9000).
+This requires some environment variables.
 
 ```bash
+export MONGO_HOST=127.0.0.1:27017
+export MONGO_USER=user
+export MONGO_PASS=pass
+export MONGO_DB=sacred
+
 docker-compose up
+
 # in new terminal
-python tablesetting.py -m sacred
+export MONGO_HOST=127.0.0.1:27017
+export MONGO_USER=user
+export MONGO_PASS=pass
+export MONGO_DB=sacred
+
+python tablesetting.py
 ```
 
 

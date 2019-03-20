@@ -5,7 +5,6 @@ from jinja2 import Template
 
 import hyperopt
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
 from hyperopt.mongoexp import MongoTrials
 
